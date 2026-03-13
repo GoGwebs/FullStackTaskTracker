@@ -2,7 +2,7 @@ using System;
 using TaskTrackerWebAPI.src.Common;
 using TaskTrackerWebAPI.src.Data;
 
-namespace TaskTrackerWebAPI.src.Endpoints.Tasks;
+namespace TaskTrackerWebAPI.src.Features.Tasks.Endpoints;
 
 public class DeleteTaskEndpoint : IEndpoint
 {

@@ -1,12 +1,13 @@
 using System;
 using FluentValidation;
 using TaskTrackerWebAPI.src.Data;
+using TaskTrackerWebAPI.src.Features.Tasks.TaskDtos;
 using TaskTrackerWebAPI.src.Services.Dtos;
 
 
 namespace TaskTrackerWebAPI.src.Services.Validators;
 
-public class TaskRequestValidator : AbstractValidator<TaskDto>
+public class TaskRequestValidator : AbstractValidator<TaskRequest>
 {
     public TaskRequestValidator()
     {
@@ -26,7 +27,9 @@ public class TaskRequestValidator : AbstractValidator<TaskDto>
 
         When(x => x.DueDate is not null, () => {
             RuleFor(x => x.DueDate)
-                .GreaterThan(DateTime.Now).WithMessage("Due date must be in the future.");
+                .Must(d => DateTime.TryParse(d, null,
+                    System.Globalization.DateTimeStyles.RoundtripKind, out _))
+                .WithMessage("'dueDate' must be a valid ISO-8601 date (e.g. 2025-12-31T00:00:00Z).");
         });
     }
 

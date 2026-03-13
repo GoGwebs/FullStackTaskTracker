@@ -1,6 +1,6 @@
 using System;
 using TaskTrackerWebAPI.src.Common;
-using TaskTrackerWebAPI.src.Endpoints.Tasks;
+using TaskTrackerWebAPI.src.Features.Tasks.Endpoints;
 
 namespace TaskTrackerWebAPI;
 

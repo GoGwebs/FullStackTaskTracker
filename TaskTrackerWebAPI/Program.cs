@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddValidatorsFromAssemblyContaining<TaskRequestValidator>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddHttpLogging(o => { });
 
 
 builder.Services.AddEndpointsApiExplorer();
@@ -24,6 +25,9 @@ builder.Services.AddDbContext<InMemoryDbContext>(options =>
 builder.Services.AddScoped<ITaskRepo, TaskRepo>();
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
+app.UseHttpLogging();  
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

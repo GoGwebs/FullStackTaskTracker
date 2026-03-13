@@ -1,22 +1,22 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using TaskTrackerWebAPI.src.Data;
+using TaskTrackerWebAPI.src.Features.Tasks.TaskDtos;
+using TaskTrackerWebAPI.src.Features.Tasks.TaskMapper;
 using TaskTrackerWebAPI.src.Infrastructure.InMemory;
 using TaskTrackerWebAPI.src.Services.Dtos;
-using TaskTrackerWebAPI.src.Services.Mappers;
 
 namespace TaskTrackerWebAPI.src.Infrastructure.Repos;
 
 public class TaskRepo : ITaskRepo
 {
-
     private readonly InMemoryDbContext _context;
 
     public TaskRepo(InMemoryDbContext context) => _context = context;
 
-    public async Task<TaskDto> Create(TaskDto task)
+    public async Task<TaskResponse> Create(TaskRequest task)
     {
-        var taskEntity = _context.Tasks.Add(task.ToTaskModel());
+        var taskEntity = _context.Tasks.Add(task.ToEntityTask());
         await _context.SaveChangesAsync();
         return taskEntity.Entity.ToTaskResponse();
     }
@@ -32,12 +32,15 @@ public class TaskRepo : ITaskRepo
         return true;
     }
 
-    public async Task<List<TaskDto>> GetAll(TaskQuery query)
+    public async Task<List<TaskResponse>> GetAll(TaskQuery query)
     {
-        var tasks = _context.Tasks.AsQueryable();
+        IQueryable<EntityTask> tasks = _context.Tasks.AsQueryable();
+
         if (!string.IsNullOrEmpty(query.Q))
         {
-            tasks = tasks.Where(t => t.Title.Contains(query.Q, StringComparison.OrdinalIgnoreCase));
+            tasks = tasks.Where(t => 
+            t.Title != null &&
+            t.Title.Contains(query.Q, StringComparison.OrdinalIgnoreCase));
         }
 
         tasks = query.IsAscending
@@ -47,7 +50,7 @@ public class TaskRepo : ITaskRepo
         return await tasks.Select(t => t.ToTaskResponse()).ToListAsync();
     }
 
-    public async Task<TaskDto?> GetById(int id)
+    public async Task<TaskResponse?> GetById(int id)
     {
         return await _context.Tasks
             .Where(t => t.Id == id)
@@ -55,9 +58,20 @@ public class TaskRepo : ITaskRepo
             .FirstOrDefaultAsync();
     }
 
-    public async Task<TaskDto?> Update(int id, TaskDto task)
+    public async Task<TaskResponse?> Update(int id, TaskRequest task)
     {
-        var taskEntity = _context.Tasks.Update(task.ToTaskModel());
+        var taskToUpdate = await _context.Tasks.FindAsync(id);
+        if (taskToUpdate is null) return null;
+
+        var taskWithNewValues = task.ToEntityTask(id);
+
+        taskToUpdate.Title = taskWithNewValues.Title ?? taskToUpdate.Title;
+        taskToUpdate.Description = taskWithNewValues.Description ?? taskToUpdate.Description;
+        taskToUpdate.Status = taskWithNewValues.Status ?? taskToUpdate.Status;
+        taskToUpdate.Priority = taskWithNewValues.Priority ?? taskToUpdate.Priority;
+        taskToUpdate.DueDate = taskWithNewValues.DueDate ?? taskToUpdate.DueDate;
+
+        var taskEntity = _context.Tasks.Update(taskToUpdate);
         await _context.SaveChangesAsync();
         return taskEntity.Entity.ToTaskResponse();
     }

@@ -4,7 +4,7 @@ using TaskTrackerWebAPI.src.Data;
 using TaskTrackerWebAPI.src.Infrastructure.InMemory;
 using TaskTrackerWebAPI.src.Services.Dtos;
 
-namespace TaskTrackerWebAPI.src.Endpoints.Tasks;
+namespace TaskTrackerWebAPI.src.Features.Tasks.Endpoints;
 
 public class GetAllTaskEndpoint: IEndpoint
 {

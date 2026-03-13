@@ -1,14 +1,13 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using TaskTrackerWebAPI.src.Data;
-using TaskModel = TaskTrackerWebAPI.src.Data.Task;
 
 namespace TaskTrackerWebAPI.src.Infrastructure.InMemory;
 
 public class InMemoryDbContext : DbContext
 {
 
-    public DbSet<TaskModel> Tasks => Set<TaskModel>();
+    public DbSet<EntityTask> Tasks => Set<EntityTask>();
     public InMemoryDbContext(DbContextOptions<InMemoryDbContext> options) : base(options)
     {
         
@@ -16,36 +15,30 @@ public class InMemoryDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<TaskModel>().HasData(
-            new TaskModel
-            {
-                Id = 1,
-                Title = "Task 1",
-                Description = "Description for Task 1",
-                Status = EStatus.New,
-                Priority = EPriority.Medium,
-                DueDate = DateTime.Now.AddDays(7)
-            },
-            new TaskModel
-            {
-                Id = 2,
-                Title = "Task 2",
-                Description = "Description for Task 2",
-                Status = EStatus.InProgress,
-                Priority = EPriority.High,
-                DueDate = DateTime.Now.AddDays(3)
-            },
-            new TaskModel
-            {
-                Id = 3,
-                Title = "Task 3",
-                Description = "Description for Task 3",
-                Status = EStatus.Done,
-                Priority = EPriority.Low,
-                DueDate = DateTime.Now.AddDays(14)
-            }
-            
-        );
+        modelBuilder.Entity<EntityTask>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+
+            entity.Property(t => t.Id)
+                  .ValueGeneratedOnAdd();       // auto-increment
+
+            entity.Property(t => t.Title)
+                  .IsRequired()
+                  .HasMaxLength(200);
+
+            entity.Property(t => t.Description)
+                  .HasMaxLength(1000);
+
+            entity.Property(t => t.Status)
+                  .IsRequired()
+                  .HasConversion<string>();     // store enum as string
+
+            entity.Property(t => t.Priority)
+                  .IsRequired()
+                  .HasConversion<string>();     // store enum as string
+
+            entity.Property(t => t.CreatedAt)
+                  .IsRequired();
+        });
     }
 }

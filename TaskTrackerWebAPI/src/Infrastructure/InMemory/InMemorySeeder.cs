@@ -1,6 +1,5 @@
 using System;
 using TaskTrackerWebAPI.src.Data;
-using TaskModel = TaskTrackerWebAPI.src.Data.Task;
 
 namespace TaskTrackerWebAPI.src.Infrastructure.InMemory;
 
@@ -19,7 +18,8 @@ public class InMemorySeeder
                 Description = "Description for Task 1",
                 Status = EStatus.New,
                 Priority = EPriority.Medium,
-                DueDate = DateTime.Now.AddDays(7)
+                DueDate = DateTimeOffset.UtcNow.AddDays(7),
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new ()
             {
@@ -28,7 +28,8 @@ public class InMemorySeeder
                 Description = "Description for Task 2",
                 Status = EStatus.InProgress,
                 Priority = EPriority.High,
-                DueDate = DateTime.Now.AddDays(3)
+                DueDate = DateTimeOffset.UtcNow.AddDays(3),
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new ()
             {
@@ -37,7 +38,8 @@ public class InMemorySeeder
                 Description = "Description for Task 3",
                 Status = EStatus.Done,
                 Priority = EPriority.Low,
-                DueDate = DateTime.Now.AddDays(14)
+                DueDate = DateTimeOffset.UtcNow.AddDays(14),
+                CreatedAt = DateTimeOffset.UtcNow
             }
             
         );
