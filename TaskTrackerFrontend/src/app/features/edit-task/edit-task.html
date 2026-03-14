@@ -1,0 +1,16 @@
+
+<div class="d-flex justify-content-start mx-3">
+    <a href="" class="btn btn-primary">Back</a>
+</div>
+<div class="d-flex bg-primary justify-content-center m-3 align-items-center vh-100 rounded">
+    <div class="bg-secondary p-4 rounded" style="width: 600px;">
+        <app-task-form
+            [initialValue]="task()!"
+            submitLabel="Update Task"
+            (submit)="onUpdate($event)" 
+            (cancel)="onCancel()"></app-task-form>
+        
+    </div>
+  
+</div>
+

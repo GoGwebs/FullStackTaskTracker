@@ -1,0 +1,65 @@
+
+<div class="d-flex justify-content-start mx-3">
+        <a href="" class="btn btn-primary">Back</a>
+    </div>
+<div class="d-flex bg-primary justify-content-center m-3 align-items-center vh-100 rounded">
+    <div class="bg-secondary p-4 rounded" style="width: 600px;">
+        <h1 class="text-white">Task Management</h1>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" formControlName="title" id="title" placeholder="e.g. Mathematics">
+            </div>
+
+            <div class="mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select mb-3" formControlName="status" aria-label="Default select example" id="status">
+                        <option value="New" selected>New</option>
+                    <option value="InProgress">In Progress</option>
+                    <option value="Done">Done</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="priority" class="form-label">Priority</label>
+                <select class="form-select mb-3" formControlName="priority" aria-label="Default select example" id="priority">
+                    <option value="Low" selected>Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" formControlName="description" rows="3"></textarea>
+            </div>
+            <div class="input-group mb-3">
+                <input
+                    class="form-control"
+                    placeholder="yyyy-mm-dd"
+                    name="dp"
+                    [(ngModel)]="date"
+                    [ngModelOptions]="{standalone: true}"
+                    (ngModelChange)="updateDueDate()"
+                    ngbDatepicker
+                    #d="ngbDatepicker"
+                />
+                <button class="btn btn-primary bi bi-calendar3" (click)="d.toggle()" type="button">Select</button>
+            </div>
+            <div class="mb-3">
+                <ngb-timepicker [ngModelOptions]="{standalone: true}" [(ngModel)]="time" (ngModelChange)="updateDueDate()" />
+            </div>
+            
+            <!-- <pre>ISO DateTime: {{ toIsoDateTime() }}</pre> -->
+
+            <button
+            type="submit"
+            class="btn btn-primary"
+            >
+            Create Task 
+            </button>
+        </form>
+        
+    </div>
+  
+</div>

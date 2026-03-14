@@ -1,0 +1,13 @@
+<div class="py-4 mx-3">
+  
+  <div class="d-flex justify-content-between mb-3">
+    <app-search-field (searchChanged)="onSearch($event)" />
+    <button class="btn btn-primary" (click)="goToCreate()">Add Task</button>
+   </div>
+
+  <div class="bg-secondary pb-3 mx-1 mt-3 row row-cols-1 row-cols-md-2 row-cols-lg-3 rounded g-3">
+    @for (task of this.taskService.tasks(); track task.id) {
+      <app-task-card [task]="task" />
+    }
+  </div>
+</div>

@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="TaskTracker.API.IntergrationTest/TaskTracker.API.IntergrationTest.csproj" />
+  <Project Path="../TaskTracker.IntergrationTests/TaskTracker.IntergrationTests.csproj" Id="db2d0d4c-cdd6-46ff-87e6-fa7b7557b2a1" />
   <Project Path="TaskTrackerWebAPI.csproj" />
 </Solution>
