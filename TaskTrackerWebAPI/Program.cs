@@ -15,6 +15,15 @@ builder.Services.AddValidatorsFromAssemblyContaining<TaskRequestValidator>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddHttpLogging(o => { });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 
 builder.Services.AddEndpointsApiExplorer();
@@ -27,7 +36,8 @@ builder.Services.AddScoped<ITaskRepo, TaskRepo>();
 var app = builder.Build();
 
 app.UseExceptionHandler();
-app.UseHttpLogging();  
+app.UseHttpLogging();
+app.UseCors("AllowFrontend");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -49,3 +59,4 @@ app.MapEndpoints();
 app.Run();
 
 
+public partial class Program { }

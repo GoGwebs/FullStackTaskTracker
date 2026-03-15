@@ -3,8 +3,10 @@ import { FormBuilder, FormsModule, FormGroup, Validators, ReactiveFormsModule } 
 import { Router } from '@angular/router';
 import { NgbDatepickerModule, NgbDateStruct, NgbTimepickerModule } from '@ng-bootstrap/ng-bootstrap';
 import { Task } from '../task-card/task-card';
-import { ITask } from '../../../models/i_task';
+import { CreateTaskPayload, ITask } from '../../../models/i_task';
 import { IFormTask } from '../../../models/task';
+import { TaskMapper } from '../../../services/task_mapper/task-mapper';
+import { CreateTaskDTO } from '../../../models/task_dto';
 
 @Component({
   selector: 'app-task-form',
@@ -19,12 +21,13 @@ import { IFormTask } from '../../../models/task';
 })
 export class TaskForm {
   fb = inject(FormBuilder);
+  mapperService = inject(TaskMapper);
   router = inject(Router);
 
-  initialValue = input<Partial<IFormTask>>();
+  initialValue = input<Partial<ITask>>();
   submitLabel = input<string>('Create Task');
 
-  submit = output<IFormTask>();
+  submitted = output<CreateTaskDTO>();
   cancel = output<void>();
 
   form!: FormGroup;
@@ -35,10 +38,12 @@ export class TaskForm {
   ngOnInit(): void {
     this.initForm();
     const initial = this.initialValue();
+    console.log('About to patch:', initial);
     if (initial) {
+      console.log('Patching form with initial value:', initial.dueDate);
       this.form.patchValue(initial);
       if (initial.dueDate) {
-        const today = new Date(initial.dueDate);
+        const today = initial.dueDate;
         this.date = {
           year:  today.getFullYear(),
           month: today.getMonth() + 1,
@@ -82,7 +87,8 @@ export class TaskForm {
 
   onSubmit() {
     if (this.form.valid) {
-      this.submit.emit(this.form.value as IFormTask);
+      const payload = this.form.value as CreateTaskDTO;
+      this.submitted.emit(payload);
     } else {
       this.form.markAllAsTouched();
     }

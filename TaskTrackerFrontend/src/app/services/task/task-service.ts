@@ -1,49 +1,152 @@
-import { Injectable, signal } from '@angular/core';
-import { ITask, TASKS } from '../../models/i_task';
+import { inject, Injectable, signal } from '@angular/core';
+import { CreateTaskPayload, ITask, TASKS, UpdateTaskPayload } from '../../models/i_task';
 import { IFormTask } from '../../models/task';
-import { map } from 'rxjs';
+import { catchError, finalize, map, Observable, tap, throwError } from 'rxjs';
 import { mapToITask } from '../../mappers/task_mapper';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { TaskMapper } from '../task_mapper/task-mapper';
+import { TaskQueryParams } from '../../models/task_state';
+import { CreateTaskDTO, TaskDTO } from '../../models/task_dto';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TaskService {
+  private http = inject(HttpClient);
+  private mapper = inject(TaskMapper);
 
   private _tasks = signal<ITask[]>([]);
+  private _task = signal<ITask | null>(null);
+  private _loading = signal(false);
+  private _error = signal<string | null>(null);
+  private apiUrl  = `${environment.apiUrl}/api/tasks`;
 
   tasks = this._tasks.asReadonly();
+  task = this._task.asReadonly();
 
-  addTask(task: IFormTask): void {
-    const newTask = mapToITask(task, this._tasks().length + 1);
-    this._tasks.update(tasks => [...tasks, newTask]);
+  loading = this._loading.asReadonly()
+  error = this._error.asReadonly();
+
+  getAllTask(params: TaskQueryParams): Observable<ITask[]> {
+    this._loading.set(true);
+    this._error.set(null);
+
+    const httpParams = this.buildParams(params);
+
+    return this.http.get<TaskDTO[]>(this.apiUrl, { params: httpParams })
+      .pipe(
+        map(dtos => {
+          const tasks = dtos.map(dto => this.mapper.fromDTO(dto));
+          this._tasks.set(tasks);
+          return tasks;
+        }), 
+        catchError(err => this.handleError(err)), 
+        finalize(() => this._loading.set(false))
+      );   
   }
 
-  loadAllTasks(titleFilter: string | null, sortByDueDate: "asc" | "desc"): void {
-    // Simulate loading tasks from an API
-    let mockTasks: ITask[] = TASKS;
-    if (titleFilter) {
-      mockTasks = mockTasks.filter(task => task.title.toLowerCase().includes(titleFilter.toLowerCase()));
+  getTaskById(id: number): Observable<ITask> {
+    this._loading.set(true);
+    this._error.set(null);
+    
+    return this.http.get<TaskDTO>(`${this.apiUrl}/${id}`)
+      .pipe(
+        map(dto => {
+          const task = this.mapper.fromDTO(dto);
+          this._task.set(task);
+          return task;
+        }),
+        catchError(err => this.handleError(err)),
+        finalize(() => this._loading.set(false))
+      );
+  }
+
+
+  createTask(payload: CreateTaskDTO): Observable<ITask> {
+    this._loading.set(true);
+    this._error.set(null);
+
+
+    return this.http.post<TaskDTO>(this.apiUrl, payload)
+      .pipe(
+        map(createdDto => this.mapper.fromDTO(createdDto)),
+        tap(createdTask => {
+          console.log('Created task from API:', createdTask);
+          this._tasks.update(tasks => [...tasks, createdTask]);
+        }),
+        catchError(err => this.handleError(err)),
+        finalize(() => this._loading.set(false))
+      );
+  }
+
+  updateTask(id: number, payload: CreateTaskDTO): Observable<void> {
+    this._loading.set(true);
+    this._error.set(null);
+
+    return this.http.put<TaskDTO>(`${this.apiUrl}/${id}`, payload, { observe: 'response' })
+      .pipe(
+        map(updatedDto => void 0), 
+        catchError(err => this.handleError(err)),
+        finalize(() => this._loading.set(false))
+      );
+  }
+
+
+  deleteTask(id: number): Observable<void> {
+    this._loading.set(true);
+    this._error.set(null);
+
+    return this.http.delete<void>(`${this.apiUrl}/${id}`)
+      .pipe(
+        tap(() => {
+          this._tasks.update(tasks => tasks.filter(t => t.id !== id));
+        }),
+        catchError(err => this.handleError(err)),
+        finalize(() => this._loading.set(false))
+      );
+  }
+
+
+  private buildParams(query: TaskQueryParams): HttpParams {
+    let params = new HttpParams();
+    if (query.page      != null) params = params.set('page',      query.page);
+    if (query.pageSize  != null) params = params.set('page_size', query.pageSize);
+    if (query.search)            params = params.set('q',    query.search);
+    if (query.sortOrder)       params = params.set('sort', query.sortOrder);
+    return params;
+  }
+
+
+
+  private handleError(err: HttpErrorResponse) {
+    let message : string;
+
+    switch (true) {
+      case err.status === 0:
+        message = 'Network error: Please check your connection';
+        break;
+      case err.status === 400:
+        message = 'Bad request: Please check the data you sent';
+        break;
+      case err.status === 401:
+        message = 'Unauthorized: Please log in to access this resource';
+        break;
+      case err.status === 403:
+        message = 'Forbidden: You do not have permission to access this resource';
+        break;
+      case err.status === 404:
+        message = 'Resource not found';
+        break;
+      case err.status === 500:
+        message = 'Internal server error';
+        break;
+      default:
+        message = 'An unknown error occurred';
     }
 
-    if (sortByDueDate === 'asc') {
-      mockTasks = mockTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-    } else {
-      mockTasks = mockTasks.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
-    }
-
-    this._tasks.set(mockTasks);
-  }
-
-  getTaskById(id: number): ITask | undefined {
-    return this._tasks().find(task => task.id === id);
-  }
-
-  updateTask(updatedTask: ITask): void {
-    this._tasks.update(tasks => tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
-  }
-
-  deleteTask(id: number): void {
-    this._tasks.update(tasks => tasks.filter(task => task.id !== id));
+    this._error.set(message);
+    return throwError(() => new Error(message));
   }
   
 }

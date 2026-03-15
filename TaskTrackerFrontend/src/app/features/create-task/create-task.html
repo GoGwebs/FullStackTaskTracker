@@ -4,12 +4,14 @@
 <div class="d-flex bg-primary justify-content-center m-3 align-items-center vh-100 rounded">
     <div class="bg-secondary p-4 rounded" style="width: 600px;">
         
-    <app-task-form 
-        submitLabel="Add New Task"
-        (submit)="onCreate($event)" 
-        (cancel)="onCancel()"
-    ></app-task-form>
+
+    @if (!taskService.loading()) {
+        <app-task-form 
+            submitLabel="Add New Task"
+            (submitted)="onCreate($event)" 
+            (cancel)="onCancel()"
+        ></app-task-form>
+      }
 
     </div>
-  
-</div><p>create-task works!</p>
+</div>

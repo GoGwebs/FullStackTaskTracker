@@ -1,10 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { IFormTask } from '../../models/task';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TaskForm } from '../../core/components/task-form/task-form';
 import { TaskService } from '../../services/task/task-service';
 import { mapTo } from 'rxjs';
 import { mapToFormTask } from '../../mappers/task_mapper';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ITask } from '../../models/i_task';
+import { CreateTaskDTO } from '../../models/task_dto';
 
 @Component({
   selector: 'app-edit-task',
@@ -14,26 +17,40 @@ import { mapToFormTask } from '../../mappers/task_mapper';
 })
 export class EditTask {
   taskService = inject(TaskService);
+  private destroyRef  = inject(DestroyRef);
   route = inject(ActivatedRoute);
   router = inject(Router);
 
-  task = signal<IFormTask | null>(null);
+  task = signal<ITask | null>(null);
   private taskId!: number;
 
   ngOnInit(): void {
     this.taskId = Number(this.route.snapshot.paramMap.get('id') );
-    const task = this.taskService.getTaskById(this.taskId);
-    if (task) {
-      this.task.set(mapToFormTask(task));
-    }
+    this.taskService
+      .getTaskById(this.taskId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(task => {
+      console.log('Task in edit component:', task);
+    });
   }
 
-  onUpdate(updatedTask: IFormTask): void {
-    console.log('Updating task:', updatedTask);
+  onUpdate(payload: CreateTaskDTO) {
+    this.taskService
+      .updateTask(this.taskId, payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          console.log('Update successful — navigating...');
+          this.router.navigate(['/'])
+      },
+        error: (err) => { 
+          console.error('Update failed:', err);
+         }
+      });
   }
 
   onCancel(): void {
-    this.router.navigate(['/tasks']);
+    this.router.navigate(['/']);
   }
 
 }

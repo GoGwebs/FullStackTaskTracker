@@ -1,13 +1,79 @@
 <div class="py-4 mx-3">
   
   <div class="d-flex justify-content-between mb-3">
-    <app-search-field (searchChanged)="onSearch($event)" />
-    <button class="btn btn-primary" (click)="goToCreate()">Add Task</button>
+    <!-- <app-search-field (searchChanged)="onSearch($event)" /> -->
+     <div class="">
+      <div class="input-group">
+        <!-- <span class="input-group-text">
+          <i class="bi bi-search"></i>
+        </span> -->
+        <input
+          type="text"
+          class="form-control form-control-lg border-secondary"
+          placeholder="Search tasks..."
+          [formControl]="searchControl"
+        />
+        <!-- Clear button — only shown when there is a search value -->
+        @if (searchControl.value) {
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="searchControl.setValue('')"
+          >
+            ✕
+          </button>
+        }
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2 text-nowrap">
+      <span class="text-muted small">Sort by due date</span>
+
+      <div class="form-check form-switch mb-0">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          role="switch"
+          id="sortSwitch"
+          [checked]="sortOrder() === 'dueDate:desc'"
+          (change)="onSortToggle()"
+        />
+      </div>
+
+      <span class="small fw-medium">{{ sortLabel() }}</span>
+    </div>
+    <button class="btn btn-primary btn-md" (click)="goToCreate()">Add Task</button>
    </div>
 
-  <div class="bg-secondary pb-3 mx-1 mt-3 row row-cols-1 row-cols-md-2 row-cols-lg-3 rounded g-3">
-    @for (task of this.taskService.tasks(); track task.id) {
-      <app-task-card [task]="task" />
+   @if (this.taskService.loading()) {
+    <div class="d-flex justify-content-center my-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+
+  @if (this.taskService.error()) {
+    <div class="alert alert-danger" role="alert">
+      {{ this.taskService.error() }}
+    </div>
+  }
+
+
+  @if (!this.taskService.loading() && !this.taskService.error()) {
+    @if (this.taskService.tasks().length > 0) {
+      <div class="bg-secondary pb-3 mx-1 mt-3 row row-cols-1 row-cols-md-2 row-cols-lg-3 rounded g-3">
+        @for (task of this.taskService.tasks(); track task.id) {
+          <app-task-card [task]="task" (taskDeleted)="onTaskDeleted($event)" />
+        }
+      </div>
+    } @else {
+      <div class="alert alert-info" role="alert">
+        No tasks found. Try adjusting your search or add a new task.
+      </div>
     }
-  </div>
+  }
+
+  
+  
+  
 </div>

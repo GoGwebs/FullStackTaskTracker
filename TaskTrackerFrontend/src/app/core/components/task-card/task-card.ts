@@ -2,6 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { ITask } from '../../../models/i_task';
 
 export interface Task {
   id: number;
@@ -20,8 +21,9 @@ export interface Task {
   styleUrl: './task-card.scss',
 })
 export class TaskCard {
-  task = input.required<Task>();
+  task = input.required<ITask>();
   statusChanged = output<{ id: number; status: string }>();
+  taskDeleted = output<number>();
 
   statuses = ['New', 'InProgress', 'Done'];
 
@@ -37,6 +39,12 @@ export class TaskCard {
       case 'Medium': return 'text-bg-warning';
       case 'Low': return 'text-bg-success';
       default: return 'text-bg-secondary';
+    }
+  }
+
+  onRemoveTask(): void {
+    if (confirm('Are you sure you want to delete this task?')) {
+      this.taskDeleted.emit(this.task().id);
     }
   }
 

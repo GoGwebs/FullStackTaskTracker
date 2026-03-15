@@ -4,11 +4,18 @@
 </div>
 <div class="d-flex bg-primary justify-content-center m-3 align-items-center vh-100 rounded">
     <div class="bg-secondary p-4 rounded" style="width: 600px;">
-        <app-task-form
-            [initialValue]="task()!"
-            submitLabel="Update Task"
-            (submit)="onUpdate($event)" 
-            (cancel)="onCancel()"></app-task-form>
+        @if (taskService.loading()) {
+            <p>Loading...</p>
+        }
+
+        @if (taskService.task(); as task) {
+            <app-task-form
+                [initialValue]="task"
+                submitLabel="Update Task"
+                (submitted)="onUpdate($event)"
+                (cancelled)="onCancel()"
+            ></app-task-form>
+        }
         
     </div>
   

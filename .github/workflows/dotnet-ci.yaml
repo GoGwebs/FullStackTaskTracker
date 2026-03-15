@@ -1,0 +1,29 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+          cache: true
+
+      - name: Restore dependencies
+        run: dotnet restore TaskTracker.IntergrationTests/TaskTracker.IntergrationTests.csproj
+
+      - name: Build
+        run: dotnet build TaskTracker.IntergrationTests/TaskTracker.IntergrationTests.csproj --no-restore
+
+      - name: Test
+        run: dotnet test TaskTracker.IntergrationTests/TaskTracker.IntergrationTests.csproj --no-build --verbosity normal
