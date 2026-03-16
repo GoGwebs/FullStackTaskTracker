@@ -2,6 +2,8 @@
 
 ## Table of Contents
 
+##### ctrl + click to follow link (e.g. ctrl + click on #introduction)
+
 1. [Introduction](#introduction)
 2. [Technology Stack](#technology-stack)
 3. [Architecture Overview](#architecture-overview)
