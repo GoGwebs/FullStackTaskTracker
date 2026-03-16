@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IFormTask } from '../../models/task';
 import { TaskForm } from '../../core/components/task-form/task-form';
@@ -7,6 +7,8 @@ import { mapToFormTask } from '../../mappers/task_mapper';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CreateTaskPayload, ITask } from '../../models/i_task';
 import { CreateTaskDTO } from '../../models/task_dto';
+import { applyApiErrors } from '../../utils/form-error.mapper';
+import { ApiValidationError } from '../../models/api.error.model';
 
 @Component({
   selector: 'app-create-task',
@@ -19,6 +21,8 @@ export class CreateTask {
   destroyRef = inject(DestroyRef);  
   router = inject(Router);
 
+  @ViewChild(TaskForm) taskForm!: TaskForm;
+
 
   onCreate(task: CreateTaskDTO): void {
     console.log('Task created:', task);
@@ -27,7 +31,10 @@ export class CreateTask {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.router.navigate(['/']),
-        error: () => { /* error already set on service signal */ }
+        error: (err: ApiValidationError) => {
+          // Apply field-level errors directly onto the form
+          applyApiErrors(this.taskForm.form, err);
+        }
       });
   }
 

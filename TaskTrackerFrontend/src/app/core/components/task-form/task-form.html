@@ -3,6 +3,21 @@
                 <label for="title" class="form-label">Title</label>
                 <input type="text" class="form-control" formControlName="title" id="title" placeholder="e.g. Mathematics">
             </div>
+            @if (isInvalid(title)) {
+                <div class="invalid-feedback alert alert-danger py-1 mb-3 d-block">
+                    @if (title.errors?.['required']) {
+                    Title is required.
+                    }
+                    @if (title.errors?.['minlength']) {
+                    Title must be at least
+                    {{ title.errors?.['minlength'].requiredLength }} characters.
+                    }
+                    @if (title.errors?.['maxlength']) {
+                    Title must not exceed
+                    {{ title.errors?.['maxlength'].requiredLength }} characters.
+                    }
+                </div>
+            }
 
             <div class="mb-3">
                 <label for="status" class="form-label">Status</label>
@@ -12,6 +27,16 @@
                     <option value="Done">Done</option>
                 </select>
             </div>
+            @if (isInvalid(status)) {
+                <div class="invalid-feedback alert alert-danger py-1 mb-3 d-block">
+                    @if (status.errors?.['required']) {
+                    Please select a status.
+                    }
+                    @if (status.errors?.['oneOf']) {
+                    Status must be New, InProgress, or Done.
+                    }
+                </div>
+            }
 
             <div class="mb-3">
                 <label for="priority" class="form-label">Priority</label>
@@ -21,6 +46,16 @@
                     <option value="High">High</option>
                 </select>
             </div>
+            @if (isInvalid(priority)) {
+                <div class="invalid-feedback alert alert-danger py-1 mb-3 d-block">
+                    @if (priority.errors?.['required']) {
+                    Please select a priority.
+                    }
+                    @if (priority.errors?.['oneOf']) {
+                    Priority must be Low, Medium, or High.
+                    }
+                </div>
+            }
             
             <div class="mb-3">
                 <label for="description" class="form-label">Description</label>
@@ -40,8 +75,21 @@
                 <button class="btn btn-primary bi bi-calendar3" (click)="d.toggle()" type="button">Select</button>
             </div>
             <div class="mb-3">
-                <ngb-timepicker [ngModelOptions]="{standalone: true}" [(ngModel)]="time" (ngModelChange)="updateDueDate()" />
+                <ngb-timepicker 
+                [readonlyInputs]="true"
+                [ngModelOptions]="{standalone: true}" 
+                [(ngModel)]="time" (ngModelChange)="updateDueDate()" />
             </div>
+            @if (isInvalid(dueDate)) {
+                <div class="invalid-feedback alert alert-danger py-1 mb-3 d-block">
+                @if (dueDate.errors?.['isoDateTime']) {
+                    <span>
+                    Please enter a valid date and time in yyyy-mm-ddTHH:mm format
+                    (e.g. {{ todayDateTime }}).
+                    </span>
+                }
+                </div>
+            }
             
             <!-- <pre>ISO DateTime: {{ toIsoDateTime() }}</pre> -->
 

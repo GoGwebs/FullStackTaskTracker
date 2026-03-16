@@ -8,6 +8,7 @@ import { TaskMapper } from '../task_mapper/task-mapper';
 import { TaskQueryParams } from '../../models/task_state';
 import { CreateTaskDTO, TaskDTO } from '../../models/task_dto';
 import { environment } from '../../../environments/environment';
+import { ApiValidationError } from '../../models/api.error.model';
 
 @Injectable({
   providedIn: 'root',
@@ -117,36 +118,56 @@ export class TaskService {
     return params;
   }
 
+  private handleError(err: HttpErrorResponse): Observable<never> {
+    console.error('API error:', err.error);
 
+    let message = 'An unexpected error occurred.';
 
-  private handleError(err: HttpErrorResponse) {
-    let message : string;
+    if (err.status === 0)   message = 'No internet connection.';
+    if (err.status === 401) message = 'Unauthorised. Please log in again.';
+    if (err.status === 403) message = 'You do not have permission to do this.';
+    if (err.status === 404) message = 'Task not found.';
+    if (err.status >= 500)  message = 'Server error. Please try again later.';
 
-    switch (true) {
-      case err.status === 0:
-        message = 'Network error: Please check your connection';
-        break;
-      case err.status === 400:
-        message = 'Bad request: Please check the data you sent';
-        break;
-      case err.status === 401:
-        message = 'Unauthorized: Please log in to access this resource';
-        break;
-      case err.status === 403:
-        message = 'Forbidden: You do not have permission to access this resource';
-        break;
-      case err.status === 404:
-        message = 'Resource not found';
-        break;
-      case err.status === 500:
-        message = 'Internal server error';
-        break;
-      default:
-        message = 'An unknown error occurred';
+    if (err.status === 400) {
+      // Pass the full error body so the component can apply field errors
+      return throwError(() => err.error as ApiValidationError);
     }
 
     this._error.set(message);
     return throwError(() => new Error(message));
   }
+
+
+
+  // private handleError(err: HttpErrorResponse) {
+  //   let message : string;
+
+  //   switch (true) {
+  //     case err.status === 0:
+  //       message = 'Network error: Please check your connection';
+  //       break;
+  //     case err.status === 400:
+  //       message = 'Bad request: Please check the data you sent';
+  //       break;
+  //     case err.status === 401:
+  //       message = 'Unauthorized: Please log in to access this resource';
+  //       break;
+  //     case err.status === 403:
+  //       message = 'Forbidden: You do not have permission to access this resource';
+  //       break;
+  //     case err.status === 404:
+  //       message = 'Resource not found';
+  //       break;
+  //     case err.status === 500:
+  //       message = 'Internal server error';
+  //       break;
+  //     default:
+  //       message = 'An unknown error occurred';
+  //   }
+
+  //   this._error.set(message);
+  //   return throwError(() => new Error(message));
+  // }
   
 }
